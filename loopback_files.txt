@@ -1,0 +1,6 @@
+#To Create 1GB File
+dd if=/dev/zero of=loopbackfile.img base=1G count=1
+mkfs.ext4 loopbackfile.img
+file loopbackfile.img
+mkdir /mnt/loopback1
+mount -o loop loopbackfile.img /mnt/loopback1
