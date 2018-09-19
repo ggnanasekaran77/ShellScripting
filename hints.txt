@@ -1,0 +1,22 @@
+To Match IP Address:
+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}
+To Search Multiple Patterns
+grep -e "pattern1" -e "pattern2"
+grep "main()" . -r --include *.{c,cpp}
+cut -f3 --complement filename 
+cut -c1-3,6-9 --output-delimiter "," filename
+sed 's/\w\+/[&]/g'
+sed 's/digit \([0-9]\)/\1/' 
+sed -e 's/a/A/' -e 's/b/B/' filename
+awk 'BEGIN {i=0} {i++} END {print i}' filename
+seq 5 | awk 'BEGIN {sum=0; print "Summation:"} {print $1"+";sum+=$1} {print "==";print sum}' 
+awk '{print v1,v2}' v1=$var1 v2=$var2 filename 
+seq 5 | awk 'BEGIN {getline; print "Read ahead first line", $0} {print $0}'
+awk '{"grep root /etc/passwd" | getline cmdout; print cmdout}'
+var="This is a line of text"
+echo ${var/line/Replace}
+echo ${var:4}
+echo ${var:4:8}
+echo ${var:(-1)}
+echo ${var:(-2):2}
+
