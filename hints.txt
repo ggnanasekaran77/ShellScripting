@@ -20,3 +20,332 @@ echo ${var:4:8}
 echo ${var:(-1)}
 echo ${var:(-2):2}
 
+
+
+ELastic Commands:
+------------------------------------------
+
+Unable to load dashboard.
+
+Unable to migrate panel data for "6.1.0" backwards compatibility, panel does not contain expected field: row
+
+export config_url=http://:8888
+export targetEnv=D1
+export organisation=edmip
+export targetEnv=D1
+export artifact=edmi-elastic-apps
+export group="com.scb.edmip"
+export tags=dashboards
+
+curl -X GET  -u '' -ks "https://elastic-hk/api/kibana/dashboards/export?dashboard=656d24a0-b91a-11e8-ac39-3f4fd98fbf27" -H 'kbn-xsrf: true' >fps-hk.json
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/kibana/dashboards/export?dashboard=servermetrics" -H 'kbn-xsrf: true' >servermetrics.json
+
+
+curl -X GET  -u '' -ks "https://elastic-hk:5601/api/kibana/dashboards/export?dashboard=servermetrics" -H 'kbn-xsrf: true'
+
+curl -X GET -u '' -H "Content-Type: application/json" -H "kbn-xsrf: true" -ks 'https://elastic-hk:5601/api/kibana/dashboards/export?dashboard=serviceaudit'
+
+
+curl -X GET -u '' -ks "https://elastic-test:5601/api/saved_objects/templates"
+
+ansible-playbook -e team=edmi -e service=centralized-logging-1g site.yml -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=api-analytics site.yml  -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=kong-analytics site.yml -i inventories/D1 -v
+ansible-playbook -e team=common -e service=servermetrics site.yml -i inventories/D1 -v
+
+
+
+indextemplate:
+---------------
+
+find ./ -path */indextemplate/*.json
+./roles/indextemplate/files/edmi/centralized-logging/a.json
+./files/edmi/centralized-logging-1g/indextemplate/logs_generic.json
+./files/edmi/centralized-logging-1g/indextemplate/protocol-audit.json
+./files/edmi/centralized-logging-1g/indextemplate/service-audit.json
+./files/api-gateway/api-analytics/indextemplate/apigw-audit-logs.json
+./files/api-gateway/api-analytics/indextemplate/apigw-server-logs.json
+./files/api-gateway/kong-analytics/indextemplate/kong-api-http-logs.json
+./files/common/servermetrics/indextemplate/metricbeat.json
+
+ansible-playbook -e team=edmi -e service=centralized-logging-1g site.yml -t indextemplate  -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=api-analytics site.yml -t indextemplate  -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=kong-analytics site.yml -t indextemplate  -i inventories/D1 -v
+ansible-playbook -e team=common -e service=servermetrics site.yml -t indextemplate  -i inventories/D1 -v
+
+IngestPipeline:
+-------------------
+
+ansible-playbook -e team=common -e service=servermetrics site.yml -t ingestpipeline  -i inventories/D1 -v
+
+
+Files:
+----------
+indextemplate -- Done
+
+
+Beatsuser:
+---------
+ansible-playbook -e team=api-gateway -e service=servermetrics site.yml -t beatsuser  -i inventories/D1 -v
+ansible-playbook -e team=edmi -e service=servermetrics site.yml -t beatsuser  -i inventories/D1 -v
+
+RoleMapping:
+-----------
+ansible-playbook -e team=api-gateway -e service=servermetrics site.yml -t rolemapping -i inventories/D1 -v
+ansible-playbook -e team=edmi -e service=servermetrics site.yml -t rolemapping -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=servermetrics site.yml -t rolemapping -i inventories/D1 -v
+
+
+
+DashBoards:
+-----------
+ansible-playbook -e team=edmi -e service=centralized-logging-1g site.yml -t dashboards -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=api-analytics site.yml -t dashboards  -i inventories/D1 -v
+ansible-playbook -e team=api-gateway -e service=kong-analytics site.yml -t dashboards  -i inventories/D1 -v
+ansible-playbook -e team=common -e service=servermetrics site.yml -t dashboards  -i inventories/D1 -v
+
+
+curl -X POST -H "Content-Type: application/json" -H "kbn-xsrf: true" -d @export.json http://localhost:5601/api/kibana/dashboards/import
+
+
+
+# [1] GET dashboard by name
+curl -u elastic -ks -X GET "http://localhost:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=serviceaudit" -H 'kbn-xsrf: true' | jq .
+
+# [2] Export dashboard by id
+# 2-a. get dashboard id
+curl -u elastic -ks -X GET "http://localhost:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=serviceaudit" -H 'kbn-xsrf: true' | jq . | grep '"id"'
+
+# 2-b. export dashboard via that id
+curl -X GET -u 'elastic' -ks "http://localhost:5601/api/kibana/dashboards/export?dashboard=8de4f0a0-c510-11e8-beec-37121d970c30" -H 'kbn-xsrf: true' | grep '"type"'
+
+
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=serviceaudit" -H 'kbn-xsrf: true' | jq .
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=protocolaudit" -H 'kbn-xsrf: true' | jq .
+
+
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=protocolaudit" -H 'kbn-xsrf: true' | jq . | grep '"id"'
+
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/saved_objects/_find?type=dashboard&search_fields=title&search=serviceaudit" -H 'kbn-xsrf: true' 
+
+# 2-b. export dashboard via that id
+curl -X GET -u 'elastic' -ks "http://localhost:5601/api/kibana/dashboards/export?dashboard=8de4f0a0-c510-11e8-beec-37121d970c30" -H 'kbn-xsrf: true' | grep '"type"'
+
+
+
+curl -X GET -u '' -H "Content-Type: application/json" -H "kbn-xsrf: true" -ks 'https://elastic-test:5601/api/kibana/dashboards/export?dashboard=serviceaudit'
+
+curl -X GET -u '1487653' -H "Content-Type: application/json" -H "kbn-xsrf: true" -ks 'https://elastic-test:5601/api/kibana/dashboards/export?dashboard=serviceaudit'
+
+curl -X GET -u '' -H "Content-Type: application/json" -H "kbn-xsrf: true" -ks 'https://elastic-test:5601/api/kibana/dashboards/export?dashboard=apigwlogs'
+
+curl -X GET -u '1487653' -H "Content-Type: application/json" -H "kbn-xsrf: true" -ks 'https://elastic-test:5601/api/kibana/dashboards/export?dashboard=apigwlogs'
+
+curl -ks 'https://10.198.36.114:5601/api/saved_objects/index-pattern/protocol-audit-*' -u ${ES_USER}:${ES_PWD} 
+
+
+export config_url=http://10.193.63.122:8888
+export targetEnv=S1
+export organisation=edmip
+export artifact=edmi-elastic-apps
+export group="com.scb.edmip"
+export tags=dashboards,watcher
+export extraVars="team=edmi,service=centralized-logging-1g"
+
+
+
+
+elasticsearch.es_primary_url
+elasticsearch.username
+elasticsearch.password
+
+
+ERROR:Exception AND FUNCTIONAL_SERVICE_NAME: scb*
+
+
+!ERROR:/([0-9]){5}/ OR !ERROR:LCM* OR !ERROR:\%fault\/detail* OR !ERROR:2033
+
+https://elastic-test:5601/app/kibana#/dashboard/edmi_1g_governence
+
+curl -X GET  -u '' -ks "https://elastic-hk-dr:5601/api/kibana/dashboards/export?dashboard=7cc73060-f9f6-11e8-8441-0d9a0c9755ca" -H 'kbn-xsrf: true' >edmi_1g_goverence
+
+
+curl -X GET  -u '' -ks "https://elastic-test:5601/api/kibana/dashboards/export?dashboard=edmi_1g_governence" -H 'kbn-xsrf: true' >files/edmi/centralized-logging-1g/dashboards/edmi_1g_goverence.json
+
+curl -X POST "localhost:9200/_xpack/license" -H 'Content-Type: application/json' -d'
+{
+  "licenses": [
+    {
+      "uid":"893361dc-9749-4997-93cb-802e3d7fa4xx",
+      "type":"basic",
+      "issue_date_in_millis":1411948800000,
+      "expiry_date_in_millis":1914278399999,
+      "max_nodes":1,
+      "issued_to":"issuedTo",
+      "issuer":"issuer",
+      "signature":"xx"
+    }
+    ]
+}
+'
+
+curl -X POST -ks https://192.168.77.31:9200/_xpack/license -H 'Content-Type: application/json' -d @license.json -u 'elastic:changme'
+
+
+curl -ks https://192.168.77.31:9200/_license -u 'elastic:Edmi!elastic@123'
+
+[npelastic@machine1 bin]$ curl -ks https://192.168.77.31:9200/_license
+{
+  "license" : {
+    "status" : "active",
+    "uid" : "78721de9-b4c0-4422-9b7d-ee86723b8593",
+    "type" : "basic",
+    "issue_date" : "2018-08-23T11:55:30.752Z",
+    "issue_date_in_millis" : 1535025330752,
+    "max_nodes" : 1000,
+    "issued_to" : "Vagrant-cluster",
+    "issuer" : "elasticsearch",
+    "start_date_in_millis" : -1
+  }
+}
+[npelastic@machine1 bin]$
+
+
+curl -ks https://192.168.77.31:9200/_cluster/health?pretty
+
+echo 'Edmi!elastic@123' | /opt/app/elasticsearch/current/bin/elasticsearch-keystore add -x 'bootstrap.password'
+
+
+ansible-playbook plays/download_config.yml --connection local -e url=http://10.193.63.122:8888 -e user=user -e password= -e label=develop
+
+ansible-playbook -i inventories/vagrant site.yml --user=npelastic -k
+
+ansible-playbook plays/download_config.yml --connection local -e url=http://10.193.63.122:8888 -e user=user -e password=
+
+ansible-playbook -i inventories/vagrant site.yml -e install_elasticsearch.version=6.4.0
+
+
+password: Edmi!beats@123
+
+Callme@915
+
+
+curl -u user: http://10.193.63.122:8888/encrypt -d 'Edmi!elastic@123'
+
+curl -u user: http://10.193.63.122:8888/encrypt -d 'Edmi!kibana@123'
+
+
+
+{{url}}/edmip(_)edmi-elastic-elasticsearch/{{profile}}/{{label}}/provisioning/inventories/group_vars/all.template
+
+curl -u user: 'http://10.193.63.122:8888/edmip(_)edmi-elastic-elasticsearch/UK,NP,D1/develop/provisioning/inventories/group_vars/all.template' >inventories/group_vars/all.yml
+
+ansible-playbook plays/download_config.yml -i inventories/D1 -e user=user -e password= -e url=http://10.193.63.122:8888
+
+export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/id_rsa_devops
+ansible-playbook site.yml -i inventories/D1
+
+
+curl -u user: 'http://10.193.63.122:8888/edmip(_)edmi-elastic-kibana/UK,NP,vagrant/change-layout/provisioning/inventories/group_vars/all.template' >inventories/group_vars/all.yml
+
+ansible-playbook -i inventories/vagrant privileged_site.yml -e ansible_ssh_user=vagrant -e ansible_ssh_pass=vagrant
+
+ansible-playbook -i inventories/vagrant site.yml -e ansible_ssh_user=npelastic -e ansible_ssh_pass=npelastic
+
+
+curl -u user: 'http://10.193.63.122:8888/edmip(_)edmi-elastic-kibana/UK,NP,D1/develop/provisioning/inventories/group_vars/all.template' >inventories/group_vars/all.yml
+
+ansible-playbook -i inventories/vagrant privileged_site.yml -e ansible_ssh_user=vagrant -e ansible_ssh_pass=vagrant
+
+ansible-playbook -i inventories/vagrant site.yml -e ansible_ssh_user=npelastic -e ansible_ssh_pass=npelastic
+
+
+Bulk Upload API:
+---------------
+
+curl -u user: 'http://10.193.63.122:8888/edmip(_)edmi-elastic-elasticsearch/HK,NP,T1/develop/provisioning/inventories/group_vars/all.template' >inventories/group_vars/all.yml
+
+
+{{ lookup('pipe','date +%Y.%m.%d') }}
+
+2018.05.06 
+
+
+- name: Add index pattern
+  uri:
+    url: "https://{{ elasticsearch.host }}:{{ elasticsearch.http_port }}/.kibana-6/doc/index-pattern:{{ item }}-*"
+    method: POST
+    user: "{{ elasticsearch.username }}"
+    password: "{{ elasticsearch.password }}"
+    return_content: yes
+    body: "{{ lookup('file','files/json/{{ item }}_index_pattern.json') }}"
+    body_format: json
+    status_code: 200,201
+    validate_certs: no
+  with_items:
+    - "{{ elasticsearch.templates }}"
+  register: response
+  changed_when: response.status == 201
+
+
+
+curl -X PUT "localhost:9200/twitter/_doc/1" -H 'Content-Type: application/json' -d'
+{
+    "user" : "kimchy",
+    "post_date" : "2009-11-15T14:12:12",
+    "message" : "trying out Elasticsearch"
+}
+'
+
+openssl genrsa -out dummysit.sekar.hk.gnanam.com.key 2048
+openssl rsa -check -in dummysit.sekar.hk.gnanam.com.key -text -noout
+
+openssl req -new -sha1 -key dummysit.sekar.hk.gnanam.com.key -out dummysit.sekar.hk.gnanam.com.csr
+openssl req -text -noout -verify -in dummysit.sekar.hk.gnanam.com.csr
+
+
+CN = dummysit.sekar.hk.gnanam.com 
+OU = Integration Services
+O = Standard Chartered Bank
+L = Hong Kong
+S = Hong Kong
+C = HK
+E = dummydevops@sc.com
+
+
+https://confluence.global.gnanam.com/display/dummy/41.GIS+Certificate+Creation
+
+
+openssl pkcs12 -export -name npdummy -in npdummy.cer -inkey npdummy.gnanam.com.key -out npdummy.p12 -password pass:npdummy
+
+keytool -list -keystore npdummy.p12 -storetype pkcs12 -storepass npdummy
+
+keytool -import -file IssuingCA.cer -alias npdummy_intermediate -keystore npdummy.jks -deststorepass npdummy
+
+keytool -import -file RootCA.cer -alias npdummy_root -keystore npdummy.jks -deststorepass npdummy
+
+openssl pkcs12 -in npdummy.p12 -out npdummy.pem  -nokeys
+
+openssl pkcs12 -export -name npdummy-sha1 -in npdummy-sha1.cer -inkey npdummy-sha1.key -out npdummy-sha1.p12 -password pass:npdummy-sha1
+
+keytool -list -keystore npdummy-sha1.p12 -storetype pkcs12 -storepass npdummy-sha1
+
+keytool -import -file npdummy-sha1_intermediate   -alias npdummy-sha1_intermediate -keystore npdummy.jks -deststorepass npdummy
+
+keytool -import -file npdummy-sha1_root -alias npdummy-sha1_root -keystore npdummy.jks -deststorepass npdummy
+
+openssl pkcs12 -in npdummy-sha1.p12 -out npdummy-sha1.pem  -nokeys
+
+
+================================================================================================================
+
+openssl req -newkey rsa:2048 -sha256 -nodes -keyout fs-solace.sc.net.key -out fs-solace.sc.net.csr -subj '/emailAddress=fs-platform-support@sc.com/C=HK/ST=Hong Kong/L=Hong Kong/O=Standard Chartered Bank/OU=Foundation Services/CN=*.fs-solace.sc.net' 
+
+openssl req -newkey rsa:2048 -sha256 -nodes -keyout fs-solace.dev.net.key -out fs-solace.dev.net.csr -subj '/emailAddress=fs-platform-support@sc.com/C=HK/ST=Hong Kong/L=Hong Kong/O=Standard Chartered Bank/OU=Foundation Services/CN=*.fs-solace.dev.net' 
+
+
